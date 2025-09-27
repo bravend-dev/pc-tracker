@@ -32,8 +32,11 @@ class PCTrackerGUI:
         
         # Set window icon
         try:
-            icon_path = "assets/logo.ico"
-            self.root.iconbitmap(icon_path)
+            icon_path = self._get_icon_path()
+            if icon_path and os.path.exists(icon_path):
+                self.root.iconbitmap(icon_path)
+            else:
+                print(f"Icon file not found: {icon_path}")
         except Exception as e:
             print(f"Could not set window icon: {e}")
         
@@ -41,6 +44,9 @@ class PCTrackerGUI:
         self.tracker = UsageTracker()
         self.tracker.add_callback(self.on_data_update)
         self.autostart = AutoStart()
+        
+        # Clean up any invalid autostart entries first
+        self.autostart.cleanup_invalid_entries()
         
         # Enable auto-start automatically
         if not self.autostart.is_enabled():
@@ -67,6 +73,20 @@ class PCTrackerGUI:
         
         # Handle window close
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+    
+    def _get_icon_path(self):
+        """Get the correct icon path for both development and compiled versions."""
+        import sys
+        
+        if getattr(sys, 'frozen', False):
+            # Running as compiled executable
+            base_path = os.path.dirname(sys.executable)
+            icon_path = os.path.join(base_path, "assets", "logo.ico")
+        else:
+            # Running as script
+            icon_path = "assets/logo.ico"
+        
+        return icon_path
     
     def create_widgets(self):
         """Create all UI widgets."""
@@ -241,8 +261,8 @@ class PCTrackerGUI:
         """Create system tray icon."""
         try:
             # Load icon from assets
-            icon_path = "assets/logo.ico"
-            if os.path.exists(icon_path):
+            icon_path = self._get_icon_path()
+            if icon_path and os.path.exists(icon_path):
                 image = Image.open(icon_path)
                 # Resize to appropriate size for tray icon
                 image = image.resize((64, 64), Image.Resampling.LANCZOS)
@@ -289,6 +309,12 @@ class PCTrackerGUI:
                 self.tray_icon.stop()
             except:
                 pass
+        
+        # Clean up autostart if needed
+        try:
+            self.autostart.cleanup_invalid_entries()
+        except:
+            pass
         
         self.root.quit()
         self.root.destroy()

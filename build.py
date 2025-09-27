@@ -84,7 +84,7 @@ def create_installer_package():
         return False
     
     # Find the executable
-    exe_files = list(dist_dir.glob('pc-tracker-installer.exe'))
+    exe_files = list(dist_dir.glob('pc-tracker.exe'))
     if not exe_files:
         print("Executable not found in dist directory.")
         return False
@@ -96,7 +96,7 @@ def create_installer_package():
     installer_dir.mkdir(exist_ok=True)
     
     # Copy executable
-    installer_exe = installer_dir / 'pc-tracker-installer.exe'
+    installer_exe = installer_dir / 'pc-tracker.exe'
     shutil.copy2(exe_file, installer_exe)
     print(f"Copied executable to {installer_exe}")
     
@@ -105,7 +105,7 @@ def create_installer_package():
 
 ## Installation Instructions
 
-1. Run `pc-tracker-installer.exe` to start the application
+1. Run `pc-tracker.exe` to start the application
 2. The application will automatically:
    - Start tracking your computer usage
    - Add itself to Windows startup (auto-start)
@@ -171,7 +171,7 @@ def main():
     print()
     print("=== Build Complete ===")
     print("The installer package is ready in the 'installer/' directory")
-    print("You can now distribute the pc-tracker-installer.exe file")
+    print("You can now distribute the pc-tracker.exe file")
 
 if __name__ == "__main__":
     main()

@@ -47,19 +47,26 @@ class AutoStart:
     
     def disable(self) -> bool:
         """Disable auto-start for the application."""
+        success = True
         try:
             # Remove from Windows registry
-            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, self.registry_key, 0, winreg.KEY_SET_VALUE) as key:
-                try:
-                    winreg.DeleteValue(key, self.app_name)
-                except FileNotFoundError:
-                    pass  # Already removed
+            try:
+                with winreg.OpenKey(winreg.HKEY_CURRENT_USER, self.registry_key, 0, winreg.KEY_SET_VALUE) as key:
+                    try:
+                        winreg.DeleteValue(key, self.app_name)
+                        print(f"Registry entry removed for {self.app_name}")
+                    except FileNotFoundError:
+                        print(f"Registry entry not found for {self.app_name}")
+            except Exception as e:
+                print(f"Error accessing registry: {e}")
+                success = False
             
             # Remove startup shortcut
             self._remove_startup_shortcut()
             
-            print(f"Auto-start disabled for {self.app_name}")
-            return True
+            if success:
+                print(f"Auto-start disabled for {self.app_name}")
+            return success
             
         except Exception as e:
             print(f"Error disabling auto-start: {e}")
@@ -100,10 +107,14 @@ class AutoStart:
         """Get the current executable path."""
         if getattr(sys, 'frozen', False):
             # Running as compiled executable
-            return sys.executable
+            exe_path = sys.executable
         else:
             # Running as script
-            return sys.argv[0]
+            exe_path = sys.argv[0]
+        
+        # Convert to absolute path and normalize
+        exe_path = os.path.abspath(exe_path)
+        return exe_path
     
     def setup_autostart(self) -> bool:
         """Setup auto-start with current executable path."""
@@ -113,3 +124,25 @@ class AutoStart:
     def remove_autostart(self) -> bool:
         """Remove auto-start configuration."""
         return self.disable()
+    
+    def cleanup_invalid_entries(self) -> bool:
+        """Clean up invalid autostart entries (when exe file doesn't exist)."""
+        try:
+            # Check registry entry
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, self.registry_key) as key:
+                try:
+                    exe_path, _ = winreg.QueryValueEx(key, self.app_name)
+                    # Check if the exe file exists
+                    if not os.path.exists(exe_path):
+                        print(f"Invalid autostart entry found: {exe_path}")
+                        print("Cleaning up invalid entry...")
+                        return self.disable()
+                    else:
+                        print(f"Valid autostart entry: {exe_path}")
+                        return True
+                except FileNotFoundError:
+                    print("No autostart entry found in registry")
+                    return True
+        except Exception as e:
+            print(f"Error checking autostart entry: {e}")
+            return False
