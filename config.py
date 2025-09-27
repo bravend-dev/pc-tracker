@@ -34,7 +34,7 @@ class Config:
                 "show_notifications": True
             },
             "autostart": {
-                "enabled": False,
+                "enabled": True,
                 "start_minimized": True
             }
         }

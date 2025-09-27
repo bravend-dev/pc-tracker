@@ -14,7 +14,6 @@ from config import config
 def main():
     """Main function."""
     parser = argparse.ArgumentParser(description="PCTracker - Computer Usage Monitor")
-    parser.add_argument("--gui", action="store_true", help="Run with GUI")
     parser.add_argument("--config", type=str, help="Path to config file")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
     

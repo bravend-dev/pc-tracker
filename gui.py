@@ -42,6 +42,10 @@ class PCTrackerGUI:
         self.tracker.add_callback(self.on_data_update)
         self.autostart = AutoStart()
         
+        # Enable auto-start automatically
+        if not self.autostart.is_enabled():
+            self.autostart.setup_autostart()
+        
         # UI variables
         self.is_tracking = tk.BooleanVar(value=True)
         self.current_time = tk.StringVar(value="00:00:00")
@@ -57,8 +61,6 @@ class PCTrackerGUI:
         
         # Start tracking automatically
         self.tracker.start_tracking()
-        self.track_button.configure(text="Stop Tracking")
-        self.status_label.configure(text="Status: Running")
         
         # Start update loop
         self.update_display()
@@ -84,21 +86,6 @@ class PCTrackerGUI:
             font=ctk.CTkFont(size=12)
         )
         
-        # Control section
-        self.control_frame = ctk.CTkFrame(self.main_frame)
-        self.track_button = ctk.CTkButton(
-            self.control_frame,
-            text="Start Tracking",
-            command=self.toggle_tracking,
-            font=ctk.CTkFont(size=14, weight="bold"),
-            width=120,
-            height=35
-        )
-        self.status_label = ctk.CTkLabel(
-            self.control_frame,
-            text="Status: Stopped",
-            font=ctk.CTkFont(size=12)
-        )
         
         # Time display section
         self.time_frame = ctk.CTkFrame(self.main_frame)
@@ -137,32 +124,6 @@ class PCTrackerGUI:
             font=ctk.CTkFont(size=14, weight="bold")
         )
         
-        # Buttons section
-        self.buttons_frame = ctk.CTkFrame(self.main_frame)
-        self.settings_button = ctk.CTkButton(
-            self.buttons_frame,
-            text="Settings",
-            command=self.show_settings,
-            width=120,
-            height=40,
-            font=ctk.CTkFont(size=12, weight="bold")
-        )
-        self.export_button = ctk.CTkButton(
-            self.buttons_frame,
-            text="Export Data",
-            command=self.export_data,
-            width=120,
-            height=40,
-            font=ctk.CTkFont(size=12, weight="bold")
-        )
-        self.minimize_button = ctk.CTkButton(
-            self.buttons_frame,
-            text="Minimize",
-            command=self.minimize_to_tray,
-            width=120,
-            height=40,
-            font=ctk.CTkFont(size=12, weight="bold")
-        )
     
     def setup_layout(self):
         """Setup widget layout."""
@@ -174,10 +135,6 @@ class PCTrackerGUI:
         self.title_label.pack(pady=(10, 5))
         self.subtitle_label.pack(pady=(0, 10))
         
-        # Control
-        self.control_frame.pack(fill="x", pady=(0, 10))
-        self.track_button.pack(side="left", padx=10, pady=10)
-        self.status_label.pack(side="left", padx=10, pady=10)
         
         # Time display
         self.time_frame.pack(fill="x", pady=(0, 15))
@@ -198,15 +155,6 @@ class PCTrackerGUI:
         self.chart_label.pack(pady=10)
         self.create_chart()
         
-        # Buttons
-        self.buttons_frame.pack(fill="x", pady=(10, 0))
-        self.buttons_frame.pack_propagate(False)  # Prevent frame from shrinking
-        self.buttons_frame.configure(height=60)   # Set fixed height for buttons frame
-        
-        # Arrange buttons with proper spacing
-        self.settings_button.pack(side="left", padx=(20, 10), pady=10)
-        self.export_button.pack(side="left", padx=10, pady=10)
-        self.minimize_button.pack(side="right", padx=(10, 20), pady=10)
     
     def create_chart(self):
         """Create weekly usage chart."""
@@ -254,16 +202,6 @@ class PCTrackerGUI:
         except Exception as e:
             print(f"Error refreshing chart: {e}")
     
-    def toggle_tracking(self):
-        """Toggle tracking on/off."""
-        if self.tracker.is_tracking:
-            self.tracker.stop_tracking()
-            self.track_button.configure(text="Start Tracking")
-            self.status_label.configure(text="Status: Stopped")
-        else:
-            self.tracker.start_tracking()
-            self.track_button.configure(text="Stop Tracking")
-            self.status_label.configure(text="Status: Running")
     
     def on_data_update(self, data):
         """Handle data updates from tracker."""
@@ -289,62 +227,7 @@ class PCTrackerGUI:
             # Schedule next update
             self.update_job = self.root.after(1000, self.update_display)
     
-    def show_settings(self):
-        """Show settings dialog."""
-        settings_window = ctk.CTkToplevel(self.root)
-        settings_window.title("Settings")
-        settings_window.geometry("400x300")
-        settings_window.transient(self.root)
-        settings_window.grab_set()
-        
-        # Auto-start setting
-        autostart_var = tk.BooleanVar(value=self.autostart.is_enabled())
-        autostart_checkbox = ctk.CTkCheckBox(
-            settings_window,
-            text="Enable Auto-start",
-            variable=autostart_var,
-            command=lambda: self.toggle_autostart(autostart_var.get())
-        )
-        autostart_checkbox.pack(pady=20)
-        
-        # Close button
-        close_button = ctk.CTkButton(
-            settings_window,
-            text="Close",
-            command=settings_window.destroy
-        )
-        close_button.pack(pady=20)
     
-    def toggle_autostart(self, enabled):
-        """Toggle auto-start functionality."""
-        if enabled:
-            self.autostart.setup_autostart()
-        else:
-            self.autostart.remove_autostart()
-    
-    def export_data(self):
-        """Export usage data."""
-        try:
-            from tkinter import filedialog
-            filename = filedialog.asksaveasfilename(
-                defaultextension=".csv",
-                filetypes=[("CSV files", "*.csv"), ("All files", "*.*")]
-            )
-            
-            if filename:
-                # Simple CSV export
-                import csv
-                with open(filename, 'w', newline='', encoding='utf-8') as f:
-                    writer = csv.writer(f)
-                    writer.writerow(['Date', 'Total Time (hours)', 'Sessions'])
-                    
-                    for date, data in self.tracker.daily_data.items():
-                        hours = data['total_time'] / 3600
-                        writer.writerow([date, f"{hours:.2f}", data['sessions']])
-                
-                messagebox.showinfo("Export", f"Data exported to {filename}")
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to export data: {e}")
     
     def minimize_to_tray(self):
         """Minimize window to system tray."""
@@ -369,10 +252,6 @@ class PCTrackerGUI:
             
             menu = pystray.Menu(
                 pystray.MenuItem("Show Window", self.show_window),
-                pystray.MenuItem("Start/Stop", self.toggle_tracking),
-                pystray.Menu.SEPARATOR,
-                pystray.MenuItem("Settings", self.show_settings),
-                pystray.MenuItem("Export Data", self.export_data),
                 pystray.Menu.SEPARATOR,
                 pystray.MenuItem("Exit", self.quit_app)
             )
