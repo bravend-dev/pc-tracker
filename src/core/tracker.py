@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Callable
 import json
 import os
-from config import config
+from .config import config
 
 
 class UsageTracker:

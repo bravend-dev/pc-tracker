@@ -128,28 +128,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+data
+
 # PCTracker specific
-config.json
-usage_data.json
+installer/
 *.log
-exports/
-backups/
-assets/icon.ico
-installer.nsi
-PCTrackerInstaller.exe
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db

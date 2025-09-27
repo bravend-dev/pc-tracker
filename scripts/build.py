@@ -58,7 +58,7 @@ def build_executable():
     
     try:
         # Run PyInstaller with the spec file
-        cmd = [sys.executable, '-m', 'PyInstaller', 'pc-tracker.spec']
+        cmd = [sys.executable, '-m', 'PyInstaller', '../pc-tracker.spec']
         result = subprocess.run(cmd, capture_output=True, text=True)
         
         if result.returncode == 0:
@@ -78,7 +78,7 @@ def create_installer_package():
     """Create a complete installer package."""
     print("Creating installer package...")
     
-    dist_dir = Path('dist')
+    dist_dir = Path('../dist')
     if not dist_dir.exists():
         print("Dist directory not found. Build may have failed.")
         return False
@@ -92,7 +92,7 @@ def create_installer_package():
     exe_file = exe_files[0]
     
     # Create installer directory
-    installer_dir = Path('installer')
+    installer_dir = Path('../installer')
     installer_dir.mkdir(exist_ok=True)
     
     # Copy executable

@@ -1,5 +1,6 @@
 @echo off
 echo Cleaning previous build artifacts...
+cd /d "%~dp0.."
 
 REM Remove build directories
 if exist "build" (

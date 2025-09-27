@@ -11,9 +11,9 @@ import pystray
 from PIL import Image
 import os
 
-from tracker import UsageTracker
-from config import config
-from autostart import AutoStart
+from src.core.tracker import UsageTracker
+from src.core.config import config
+from src.system.autostart import AutoStart
 
 
 class PCTrackerGUI:
@@ -48,14 +48,19 @@ class PCTrackerGUI:
         # Clean up any invalid autostart entries first
         self.autostart.cleanup_invalid_entries()
         
-        # Enable auto-start automatically
-        if not self.autostart.is_enabled():
-            self.autostart.setup_autostart()
+        # Setup auto-start based on config
+        if config.get("autostart", "enabled"):
+            if not self.autostart.is_enabled():
+                self.autostart.setup_autostart()
+        else:
+            if self.autostart.is_enabled():
+                self.autostart.remove_autostart()
         
         # UI variables
         self.is_tracking = tk.BooleanVar(value=True)
         self.current_time = tk.StringVar(value="00:00:00")
         self.today_time = tk.StringVar(value="00:00:00")
+        self.autostart_enabled = tk.BooleanVar(value=config.get("autostart", "enabled"))
         self.update_job = None
         self.is_closing = False
         self.chart_canvas = None  # Store chart canvas reference
@@ -106,6 +111,15 @@ class PCTrackerGUI:
             font=ctk.CTkFont(size=12)
         )
         
+        # Settings section
+        self.settings_frame = ctk.CTkFrame(self.header_frame)
+        self.autostart_checkbox = ctk.CTkCheckBox(
+            self.settings_frame,
+            text="Auto Start with Windows",
+            variable=self.autostart_enabled,
+            command=self.toggle_autostart
+        )
+        
         
         # Time display section
         self.time_frame = ctk.CTkFrame(self.main_frame)
@@ -153,7 +167,11 @@ class PCTrackerGUI:
         # Header
         self.header_frame.pack(fill="x", pady=(0, 10))
         self.title_label.pack(pady=(10, 5))
-        self.subtitle_label.pack(pady=(0, 10))
+        self.subtitle_label.pack(pady=(0, 5))
+        
+        # Settings
+        self.settings_frame.pack(fill="x", padx=20, pady=(0, 10))
+        self.autostart_checkbox.pack(side="left", padx=10, pady=5)
         
         
         # Time display
@@ -221,6 +239,33 @@ class PCTrackerGUI:
                 self.chart_canvas.draw()
         except Exception as e:
             print(f"Error refreshing chart: {e}")
+    
+    def toggle_autostart(self):
+        """Toggle auto-start setting."""
+        enabled = self.autostart_enabled.get()
+        
+        # Update config
+        config.set("autostart", "enabled", enabled)
+        
+        # Apply the setting
+        if enabled:
+            if not self.autostart.is_enabled():
+                success = self.autostart.setup_autostart()
+                if success:
+                    messagebox.showinfo("Auto Start", "Auto start with Windows has been enabled.")
+                else:
+                    messagebox.showerror("Auto Start", "Failed to enable auto start.")
+                    self.autostart_enabled.set(False)
+                    config.set("autostart", "enabled", False)
+        else:
+            if self.autostart.is_enabled():
+                success = self.autostart.remove_autostart()
+                if success:
+                    messagebox.showinfo("Auto Start", "Auto start with Windows has been disabled.")
+                else:
+                    messagebox.showerror("Auto Start", "Failed to disable auto start.")
+                    self.autostart_enabled.set(True)
+                    config.set("autostart", "enabled", True)
     
     
     def on_data_update(self, data):

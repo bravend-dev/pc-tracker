@@ -18,7 +18,8 @@ pip install pyinstaller
 REM Run the build script
 echo.
 echo Starting build process...
-python build.py
+cd /d "%~dp0.."
+python scripts/build.py
 
 echo.
 echo Build process completed!

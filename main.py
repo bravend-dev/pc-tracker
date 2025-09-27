@@ -6,9 +6,9 @@ import os
 import argparse
 from pathlib import Path
 
-# Import simplified modules
-from gui import PCTrackerGUI
-from config import config
+# Import modules from new structure
+from src.gui import PCTrackerGUI
+from src.core import config
 
 
 def main():

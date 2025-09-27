@@ -5,17 +5,30 @@ PCTracker là ứng dụng theo dõi thời gian sử dụng máy tính với gi
 
 ## Kiến trúc App
 
-### 1. Cấu trúc thư mục đơn giản
+### 1. Cấu trúc thư mục mới
 ```
 PCTracker/
 ├── main.py                 # Entry point chính
-├── config.py              # Cấu hình app
-├── tracker.py             # Core tracking logic
-├── gui.py                 # Giao diện đơn giản
-├── autostart.py           # Tự khởi động
+├── src/                    # Source code chính
+│   ├── core/              # Core business logic
+│   │   ├── tracker.py     # UsageTracker class
+│   │   └── config.py      # Configuration management
+│   ├── gui/               # GUI components
+│   │   └── main_window.py # PCTrackerGUI class
+│   ├── system/            # System integration
+│   │   └── autostart.py   # AutoStart class
+│   └── utils/             # Utility functions
+├── scripts/               # Build and utility scripts
+│   ├── build.py
+│   ├── build.bat
+│   ├── run.bat
+│   └── clean.bat
+├── assets/                # Static assets
+│   └── logo.ico
+├── data/                  # Data storage
+│   └── usage_data.json
 ├── requirements.txt       # Dependencies
-└── data/
-    └── usage_data.json    # Dữ liệu sử dụng
+└── pc-tracker.spec       # PyInstaller spec
 ```
 
 ### 2. Các module chính
@@ -29,7 +42,7 @@ PCTracker/
 - Quản lý lifecycle của app
 ```
 
-#### 2.2 config.py - Cấu hình
+#### 2.2 src/core/config.py - Cấu hình
 ```python
 # Chức năng:
 - Load/save cấu hình từ file JSON
@@ -38,7 +51,7 @@ PCTracker/
 - Validation cấu hình
 ```
 
-#### 2.3 tracker.py - Core Logic
+#### 2.3 src/core/tracker.py - Core Logic
 ```python
 # Chức năng:
 - Theo dõi hoạt động máy tính
@@ -47,7 +60,7 @@ PCTracker/
 - Callback system cho real-time updates
 ```
 
-#### 2.4 gui.py - Giao diện
+#### 2.4 src/gui/main_window.py - Giao diện
 ```python
 # Chức năng:
 - Main window với CustomTkinter
@@ -57,22 +70,23 @@ PCTracker/
 - Minimize to tray
 ```
 
-#### 2.5 autostart.py - Auto Start
+#### 2.5 src/system/autostart.py - Tự khởi động
 ```python
 # Chức năng:
 - Tự khởi động cùng Windows
 - Registry management
 - Startup folder management
 - Enable/disable autostart
+- Cross-platform support (Windows focus)
 ```
 
-#### 2.6 autostart.py - Tự khởi động
+#### 2.6 scripts/ - Build Scripts
 ```python
 # Chức năng:
-- Windows Registry management
-- Startup folder shortcut
-- Enable/disable autostart
-- Cross-platform support (Windows focus)
+- build.py: Automated build process
+- build.bat: Windows build script
+- run.bat: Quick run script
+- clean.bat: Clean build artifacts
 ```
 
 ## Thiết kế UI đơn giản
