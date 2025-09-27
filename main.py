@@ -14,15 +14,9 @@ from config import config
 def main():
     """Main function."""
     parser = argparse.ArgumentParser(description="PCTracker - Computer Usage Monitor")
-    parser.add_argument("--config", type=str, help="Path to config file")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
     
     args = parser.parse_args()
-    
-    # Load config if specified
-    if args.config:
-        config.config_file = args.config
-        config.load_config()
     
     print("Starting PCTracker...")
     
