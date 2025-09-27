@@ -32,18 +32,8 @@ class PCTrackerGUI:
         
         # Set window icon
         try:
-            icon_path = "assets/logo.png"
-            if os.path.exists(icon_path):
-                # Convert PNG to ICO for Windows
-                from PIL import Image
-                img = Image.open(icon_path)
-                # Create a temporary ICO file
-                temp_ico = "temp_icon.ico"
-                img.save(temp_ico, format='ICO', sizes=[(16,16), (32,32), (48,48), (64,64)])
-                self.root.iconbitmap(temp_ico)
-                # Clean up temp file
-                if os.path.exists(temp_ico):
-                    os.remove(temp_ico)
+            icon_path = "assets/logo.ico"
+            self.root.iconbitmap(icon_path)
         except Exception as e:
             print(f"Could not set window icon: {e}")
         
@@ -368,7 +358,7 @@ class PCTrackerGUI:
         """Create system tray icon."""
         try:
             # Load icon from assets
-            icon_path = "assets/logo.png"
+            icon_path = "assets/logo.ico"
             if os.path.exists(icon_path):
                 image = Image.open(icon_path)
                 # Resize to appropriate size for tray icon
