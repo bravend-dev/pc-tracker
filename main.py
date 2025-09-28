@@ -2,22 +2,11 @@
 Main entry point for PCTracker application.
 """
 import sys
-import os
-import argparse
-from pathlib import Path
-
-# Import modules from new structure
 from src.gui import PCTrackerGUI
-from src.core import config
-
 
 def main():
     """Main function."""
-    parser = argparse.ArgumentParser(description="PCTracker - Computer Usage Monitor")
-    parser.add_argument("--debug", action="store_true", help="Enable debug mode")
-    
-    args = parser.parse_args()
-    
+
     print("Starting PCTracker...")
     
     try:

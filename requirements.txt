@@ -4,3 +4,5 @@ matplotlib>=3.6.0
 pystray>=0.19.4
 pyinstaller
 Pillow
+pynput
+pywin32

