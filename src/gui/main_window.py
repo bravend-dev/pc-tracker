@@ -13,6 +13,7 @@ import os
 
 from src.core.tracker import UsageTracker
 from src.core.config import config
+from src.utils.embedded_icon import get_embedded_icon, get_embedded_icon_bytes, create_fallback_icon
 from src.system.autostart import AutoStart
 
 
@@ -32,11 +33,25 @@ class PCTrackerGUI:
         
         # Set window icon
         try:
-            icon_path = self._get_icon_path()
-            if icon_path and os.path.exists(icon_path):
-                self.root.iconbitmap(icon_path)
+            # Try embedded icon first
+            icon_bytes = get_embedded_icon_bytes()
+            if icon_bytes:
+                # Save embedded icon to temporary file for tkinter
+                import tempfile
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.ico') as tmp_file:
+                    tmp_file.write(icon_bytes)
+                    tmp_icon_path = tmp_file.name
+                
+                self.root.iconbitmap(tmp_icon_path)
+                # Clean up temporary file after a short delay
+                self.root.after(1000, lambda: os.unlink(tmp_icon_path) if os.path.exists(tmp_icon_path) else None)
             else:
-                print(f"Icon file not found: {icon_path}")
+                # Fallback to file-based icon
+                icon_path = self._get_icon_path()
+                if icon_path and os.path.exists(icon_path):
+                    self.root.iconbitmap(icon_path)
+                else:
+                    print(f"Icon file not found: {icon_path}")
         except Exception as e:
             print(f"Could not set window icon: {e}")
         
@@ -305,15 +320,20 @@ class PCTrackerGUI:
     def create_tray_icon(self):
         """Create system tray icon."""
         try:
-            # Load icon from assets
-            icon_path = self._get_icon_path()
-            if icon_path and os.path.exists(icon_path):
-                image = Image.open(icon_path)
+            # Try embedded icon first
+            image = get_embedded_icon()
+            if image:
                 # Resize to appropriate size for tray icon
                 image = image.resize((64, 64), Image.Resampling.LANCZOS)
             else:
-                # Fallback to simple blue icon
-                image = Image.new('RGB', (64, 64), color='blue')
+                # Try file-based icon as fallback
+                icon_path = self._get_icon_path()
+                if icon_path and os.path.exists(icon_path):
+                    image = Image.open(icon_path)
+                    image = image.resize((64, 64), Image.Resampling.LANCZOS)
+                else:
+                    # Create fallback icon
+                    image = create_fallback_icon()
             
             menu = pystray.Menu(
                 pystray.MenuItem("Show Window", self.show_window),

