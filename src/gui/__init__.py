@@ -6,3 +6,4 @@ from .main_window import PCTrackerGUI
 
 __all__ = ['PCTrackerGUI']
 
+
