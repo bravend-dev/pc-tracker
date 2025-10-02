@@ -58,7 +58,7 @@ def build_executable():
     
     try:
         # Run PyInstaller with the spec file
-        cmd = [sys.executable, '-m', 'PyInstaller', '../pc-tracker.spec']
+        cmd = [sys.executable, '-m', 'PyInstaller', 'pc-tracker.spec']
         result = subprocess.run(cmd, capture_output=True, text=True)
         
         if result.returncode == 0:
