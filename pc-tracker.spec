@@ -77,6 +77,6 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     icon='assets/logo.ico' if os.path.exists('assets/logo.ico') else None,
-    version_file=None,
+    version_file='version_info.txt',
 )
 
